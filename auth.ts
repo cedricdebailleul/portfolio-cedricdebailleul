@@ -30,7 +30,7 @@ export const {
       //Allow Oauth without email verification
       if (account?.provider !== "credentials") return true;
 
-      const existingUser = await getUserById(user.id);
+      const existingUser = await getUserById(user.id as string);
 
       // Prevent sign in without email verification
       if (!existingUser?.emailVerified) return false;
@@ -49,26 +49,28 @@ export const {
 
       return true;
     },
-    async session({ token, session }) {
-      if (token.sub && session.user) {
-        session.user.id = token.sub;
-      }
+    async session({ session, ...context }) {
+      if ("token" in context) {
+        const token = context.token;
+        if (token.sub && session.user) {
+          session.user.id = token.sub;
+        }
 
-      if (token.role && session.user) {
-        session.user.role = token.role as UserRole;
-      }
+        if (token.role && session.user) {
+          session.user.role = token.role as UserRole;
+        }
 
-      if (session.user) {
-        session.user.isTwoFactorEnabled = token.isTwoFactorEnabled as boolean;
-      }
+        if (session.user) {
+          session.user.isTwoFactorEnabled = token.isTwoFactorEnabled as boolean;
+        }
 
-      if (session.user) {
-        session.user.id = token.sub as string;
-        session.user.name = token.name as string;
-        session.user.email = token.email as string;
-        session.user.isOauth = token.isOauth as boolean;
+        if (session.user) {
+          session.user.id = token.sub as string;
+          session.user.name = token.name as string;
+          session.user.email = token.email as string;
+          session.user.isOauth = token.isOauth as boolean;
+        }
       }
-
       return session;
     },
     async jwt({ token }) {
